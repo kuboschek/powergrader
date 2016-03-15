@@ -71,10 +71,16 @@ def grade(ex):
 
 
     exdir = get_ex_dir(ex)
+
+    if not isdir(exdir):
+        click.secho("Exercise %s (%s) not found." % (ex, exdir), bold=True, fg='red')
+        return
+
     result_dir = get_ex_results_dir(ex)
     users = listdir(result_dir)
 
-    b = BaseProcessor(ex, [])
+    # TODO Parse manifest to obtain file list and test cases
+    b = BaseProcessor(ex, [], [])
 
     # List of all processors, run in this order
     procs = [
@@ -89,15 +95,21 @@ def grade(ex):
 
         if(isdir(resdir)):
             deductions = []
+            issues = []
+
             for processor in procs:
-                deductions.append(processor.process(user))
+                d = processor.process(user)
+                deductions.append(d)
+
+                if d['deductions']:
+                    issues.append(processor.get_name())
 
 
 
             if deductions:
-                click.secho(user, fg='red')
+                click.secho("%s: %s" % (user, issues), fg='red')
             else:
-                click.secho(user, fg='green')
+                click.secho("%s: OK" % user, fg='green')
 
             with open(join(resdir, 'result.json'), 'w') as f:
                 json.dump(deductions, f)
