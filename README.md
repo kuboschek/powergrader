@@ -47,11 +47,11 @@ manifest.json:
 
 result.json:
 * generated deductions (from processors)
-    * comment
-    * percentage
-    * suggestion == true | false
     * generated - by
     * timestamp
+        * comment
+        * percentage
+        * suggestion == true | false
 
 Command structure:
 
