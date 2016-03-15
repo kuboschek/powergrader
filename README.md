@@ -42,7 +42,6 @@ Folder structure:
 
 manifest.json:
 * name of task
-* id of task
 * corresponding testcases
 * filenames of given files
 
