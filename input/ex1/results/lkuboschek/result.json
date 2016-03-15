@@ -1,0 +1,9 @@
+[
+  {
+    "comment": "Your memory leaks suck",
+    "percentage": 15,
+    "suggestion": true,
+    "generated-by": "valgrind",
+    "timestamp": 12455493068
+  }
+]
