@@ -17,6 +17,7 @@ Processors:
 * `30-compile.py` — Compiles project
 * `40-testcases.py` — Runs attached testcases on solutions
 * `50-valgrind.py` — Check for memory leaks on all solutions
+* `60-comments.py` - Process TA comments
 
 Each processor takes a file, info about the exercise, and returns a list of grade deductions
 
@@ -48,8 +49,10 @@ manifest.json:
 result.json:
 * generated deductions (from processors)
     * comment
-    * points
+    * percentage
     * suggestion == true | false
+    * generated - by
+    * timestamp
 
 Command structure:
 
