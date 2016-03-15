@@ -4,11 +4,16 @@ import datetime
 from helpers import get_ex_dir, get_ex_solution
 
 class BaseProcessor(object):
-    def __init__(self, exname, filenames):
+    def __init__(self, exname, filenames, testcases):
         self.exname = exname
         self.ex_dir = get_ex_dir(exname)
         self.filenames = filenames
+        self.testcases = testcases
+
         self.procname = "base"
+
+    def get_name(self):
+        return self.procname
 
     def run(self, uname):
         """Generate list of deductions"""
