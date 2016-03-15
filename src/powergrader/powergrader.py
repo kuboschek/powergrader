@@ -4,11 +4,13 @@ import click
 # Local helpers file
 from helpers import *
 
-from os import mkdir, removedirs
-from os.path import join
+from os import mkdir, removedirs, listdir
+from os.path import join, isdir
 
 import subprocess
 import json
+
+import sys, inspect
 
 MANIFEST_NAME = "manifest.json"
 
@@ -60,6 +62,46 @@ def ingest(input, name, id):
 
     with open(join(get_ex_dir(exname), MANIFEST_NAME), 'w') as f:
         json.dump(manifest, f)
+
+@cli.command()
+@click.argument('ex')
+def grade(ex):
+    """Run all processors on given exercises' results."""
+    from processors.base import BaseProcessor
+
+
+    exdir = get_ex_dir(ex)
+    result_dir = get_ex_results_dir(ex)
+    users = listdir(result_dir)
+
+    b = BaseProcessor(ex, [])
+
+    # List of all processors, run in this order
+    procs = [
+        b
+    ]
+
+    click.secho("Grading %s (%s):" % (ex, exdir), bold=True)
+    click.echo()
+
+    for user in users:
+        resdir = join(result_dir, user)
+
+        if(isdir(resdir)):
+            deductions = []
+            for processor in procs:
+                deductions.append(processor.process(user))
+
+
+
+            if deductions:
+                click.secho(user, fg='red')
+            else:
+                click.secho(user, fg='green')
+
+            with open(join(resdir, 'result.json'), 'w') as f:
+                json.dump(deductions, f)
+
 
 if __name__ == '__main__':
     cli()
