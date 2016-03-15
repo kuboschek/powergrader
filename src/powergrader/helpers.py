@@ -4,14 +4,10 @@ from os import mkdir, makedirs
 from os.path import expanduser, join
 
 INPUT_DIR = "input"
-OUTPUT_DIR = "output"
-PROC_DIR = "processors"
 TEST_DIR = "testcases"
 
 ALL_DIRS = [
     INPUT_DIR,
-    OUTPUT_DIR,
-    PROC_DIR,
     TEST_DIR
 ]
 
