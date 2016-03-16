@@ -1,13 +1,15 @@
 #!/usr/bin/env python
-
-from processors.base import BaseProcessor
-from helpers import get_ex_dir, get_ex_solution, get_ex_results_dir
+"""Module for DiffProcessor, diffs files to find plagiarism"""
 from os import listdir
 from os.path import join, isdir
 
 from difflib import SequenceMatcher
 
+from processors.base import BaseProcessor
+from helpers import get_ex_solution, get_ex_results_dir
+
 class DiffProcessor(BaseProcessor):
+    """Diffs all resultsets of all students, to find plagiarism."""
     def __init__(self, *args, **kwargs):
         super(DiffProcessor, self).__init__(*args, **kwargs)
         self.similarity_warning = 0.7 # Warn when 70% similar
