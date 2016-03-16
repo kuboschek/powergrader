@@ -60,7 +60,7 @@ def ingest(file, name, exid):
 
     # TODO Generate file list based on first result set
     manifest["files"] = []
-    
+
     with open(join(get_ex_dir(exname), MANIFEST_NAME), 'w') as man_file:
         json.dump(manifest, man_file, indent=4)
 
@@ -70,6 +70,7 @@ def grade(ex):
     """Run all processors on exercise results"""
     from processors.base import BaseProcessor
     from processors.diff import DiffProcessor
+    from processors.compile import CompileProcessor
 
     exdir = get_ex_dir(ex)
 
@@ -86,7 +87,8 @@ def grade(ex):
     # List of all processors, run in this order
     proc_classes = [
         BaseProcessor,
-        DiffProcessor
+        DiffProcessor,
+        CompileProcessor
     ]
 
     # Instantiate each processor
