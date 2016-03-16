@@ -115,7 +115,7 @@ def grade(ex):
 
 
 
-            if deductions:
+            if issues:
                 click.secho("%s: %s" % (user, issues), fg='red')
             else:
                 click.secho("%s: OK" % user, fg='green')
