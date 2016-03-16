@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from os import mkdir, makedirs
+from os import makedirs
 from os.path import expanduser, join
 
 INPUT_DIR = "input"
@@ -29,7 +29,7 @@ def builddirs(parent=getbasedir()):
     """Create folder structure required for powergrader"""
     for name in ALL_DIRS:
         try:
-            makedirs(join(parent,name))
+            makedirs(join(parent, name))
         except FileExistsError:
             pass # Keep going even when some folders already exist
 
@@ -41,12 +41,17 @@ def get_ex_dir(exname, parent=getbasedir()):
     return join(parent, INPUT_DIR, exname)
 
 def get_ex_results_dir(exname, parent=getbasedir()):
-    return join(get_ex_dir(exname), RESULTS_DIR)
+    """Returns path to result directory for given exercise."""
+    return join(get_ex_dir(exname, parent), RESULTS_DIR)
 
 def get_ex_solution(exname, uname):
     """Returns folder for specific exercise solution"""
     return join(getbasedir(), INPUT_DIR, exname, RESULTS_DIR, uname)
 
+# Test directories
+def get_test_dir(testname, parent=getbasedir()):
+    """Returns the testcases directory"""
+    return join(parent, TEST_DIR, testname)
 
 # Name mangling
 def mangle_ex_name(exname, exid):

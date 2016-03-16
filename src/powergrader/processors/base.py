@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import datetime
-from helpers import get_ex_dir, get_ex_solution
+from helpers import get_ex_dir
 
 class BaseProcessor(object):
+    """Do nothing processor."""
     def __init__(self, exname, filenames, testcases):
         self.exname = exname
         self.ex_dir = get_ex_dir(exname)
