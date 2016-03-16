@@ -10,19 +10,13 @@ class BaseProcessor(object):
         self.filenames = filenames
         self.testcases = testcases
 
-        self.procname = "base"
-
     def get_name(self):
-        return self.procname
+        return "base"
 
     def run(self, uname):
         """Generate list of deductions"""
 
-        out = [{
-            'comment': 'BaseProcessor processed %s for %s' % (self.exname, uname),
-            'percentage': 0,
-            'suggestion': True
-        }]
+        out = []
 
         return out
 
@@ -30,7 +24,7 @@ class BaseProcessor(object):
         """Output object of deductions"""
 
         out = {
-            'generated-by': self.procname,
+            'generated-by': self.get_name(),
             'timestamp': datetime.datetime.now().isoformat(),
             'deductions': self.run(uname)
         }
