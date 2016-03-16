@@ -1,30 +1,32 @@
 #!/usr/bin/env python3
-import click
-
+"""Powergrader is a tool to evaluate given C/C++ source files for grading."""
 # Local helpers file
-from helpers import *
+# from helpers import *
 
 from os import mkdir, removedirs, listdir
-from os.path import join, isdir
+from os.path import join, isdir, isfile
 
 import subprocess
 import json
 
-import sys, inspect
+import click
+
+from helpers import builddirs, get_ex_dir, get_ex_results_dir, mangle_ex_name, get_test_dir
 
 MANIFEST_NAME = "manifest.json"
 
 @click.group()
 def cli():
+    """Top-level CLI"""
     pass
 
 @cli.command('import')
-@click.argument('input', type=click.Path(exists=True))
+@click.argument('file', type=click.Path(exists=True))
 @click.argument('name')
-@click.argument('id', required=False)
-def ingest(input, name, id):
+@click.argument('exid', required=False)
+def ingest(file, name, exid):
     """ Import a new file into powergrader """
-    exname = mangle_ex_name(name, id)
+    exname = mangle_ex_name(name, exid)
 
     # Ensure that all required folders exist
     builddirs()
@@ -36,14 +38,14 @@ def ingest(input, name, id):
     mkdir(get_ex_results_dir(exname))
 
     # Untar exercise file into results folder
-    cmd = ['tar', '-xf', input, "-C", get_ex_results_dir(exname)]
+    cmd = ['tar', '-xf', file, "-C", get_ex_results_dir(exname)]
 
-    p = subprocess.Popen(cmd)
+    untar = subprocess.Popen(cmd)
 
-    p.wait()
+    untar.wait()
 
     # If tar fails, clean up again
-    if p.returncode != 0:
+    if untar.returncode != 0:
         removedirs(get_ex_dir(exname))
 
     # Generate manifest into folder
@@ -52,21 +54,20 @@ def ingest(input, name, id):
 
     manifest["name"] = exname
     manifest["exname"] = name
-    manifest["exid"] = id
+    manifest["exid"] = exid
 
     manifest["testcases"] = []
 
     # TODO Generate file list based on first result set
     manifest["files"] = []
-
-
-    with open(join(get_ex_dir(exname), MANIFEST_NAME), 'w') as f:
-        json.dump(manifest, f, indent=4)
+    
+    with open(join(get_ex_dir(exname), MANIFEST_NAME), 'w') as man_file:
+        json.dump(manifest, man_file, indent=4)
 
 @cli.command()
 @click.argument('ex')
 def grade(ex):
-    """Run all processors on given exercises' results."""
+    """Run all processors on exercise results"""
     from processors.base import BaseProcessor
     from processors.diff import DiffProcessor
 
@@ -77,40 +78,35 @@ def grade(ex):
         return
 
     result_dir = get_ex_results_dir(ex)
-    users = listdir(result_dir)
 
     # TODO Parse manifest to obtain file list and test cases
     with open(join(exdir, 'manifest.json')) as man_file:
         manifest = json.load(man_file)
 
-    testcases = manifest['testcases']
-    filenames = manifest['files']
-
-
-    b = BaseProcessor(ex, filenames, testcases)
-    d = DiffProcessor(ex, filenames, testcases)
-
     # List of all processors, run in this order
-    procs = [
-        b,
-        d
+    proc_classes = [
+        BaseProcessor,
+        DiffProcessor
     ]
+
+    # Instantiate each processor
+    procs = [proc_cls(ex, manifest['files'], manifest['testcases']) for proc_cls in proc_classes]
 
     click.secho("Grading %s (%s):" % (ex, exdir), bold=True)
     click.echo()
 
-    for user in users:
+    for user in listdir(result_dir):
         resdir = join(result_dir, user)
 
-        if(isdir(resdir)):
+        if isdir(resdir):
             deductions = []
             issues = []
 
             for processor in procs:
-                d = processor.process(user)
-                deductions.append(d)
+                out = processor.process(user)
+                deductions.append(out)
 
-                if d['deductions']:
+                if out['deductions']:
                     issues.append(processor.get_name())
 
 
@@ -120,9 +116,66 @@ def grade(ex):
             else:
                 click.secho("%s: OK" % user, fg='green')
 
-            with open(join(resdir, 'result.json'), 'w') as f:
-                json.dump(deductions, f, indent=4)
+            with open(join(resdir, 'result.json'), 'w') as res_file:
+                json.dump(deductions, res_file, indent=4)
+
+
+
+IN_FILE = 'in'
+OUT_FILE = 'out'
+
+@cli.group()
+@click.argument('name')
+@click.pass_context
+def test(ctx, name):
+    """Commands for editing test cases for exercises"""
+    ctx.obj['TEST_NAME'] = name
+
+@test.command()
+@click.argument('file_in', type=click.Path(exists=True), required=False)
+@click.argument('file_out', type=click.Path(exists=True), required=False)
+@click.pass_context
+def create(ctx, file_in, file_out):
+    """Create a new testcase NYI"""
+    print("TODO")
+
+@test.command()
+@click.argument('ex')
+@click.pass_context
+def link(ctx, ex):
+    """Mark a test as relevant to this exercise"""
+    problem = ""
+    test_name = ctx.obj['TEST_NAME']
+
+    # Find test directory
+    testdir = get_test_dir(test_name)
+
+    if not (isdir(testdir) and isfile(join(testdir, IN_FILE)) and isfile(join(testdir, OUT_FILE))):
+        problem = "No such test."
+
+    # Find manifest for exercise
+    exdir = get_ex_dir(ex)
+
+    if not isdir(exdir):
+        problem = "No such exercise."
+
+    if problem != "":
+        click.secho(problem, fg='red')
+        return
+
+    with open(join(get_ex_dir(ex), MANIFEST_NAME)) as man_file:
+        manifest = json.load(man_file)
+
+    # Actually append the testcase
+    if manifest['testcases'].count(test_name) == 0:
+        manifest['testcases'].append(test_name)
+
+    # Rewind to the beginning
+    with open(join(get_ex_dir(ex), MANIFEST_NAME), 'w') as man_f:
+        json.dump(manifest, man_f, indent=4)
+
+    return
 
 
 if __name__ == '__main__':
-    cli()
+    cli(obj={})
