@@ -61,7 +61,7 @@ def ingest(input, name, id):
 
 
     with open(join(get_ex_dir(exname), MANIFEST_NAME), 'w') as f:
-        json.dump(manifest, f)
+        json.dump(manifest, f, indent=4)
 
 @cli.command()
 @click.argument('ex')
@@ -121,7 +121,7 @@ def grade(ex):
                 click.secho("%s: OK" % user, fg='green')
 
             with open(join(resdir, 'result.json'), 'w') as f:
-                json.dump(deductions, f)
+                json.dump(deductions, f, indent=4)
 
 
 if __name__ == '__main__':
