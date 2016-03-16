@@ -64,6 +64,7 @@ ex := exid | exname
         * link <ex> — mark given test as relevant for exercise
         * create — create a new test interactively
         * create <in> <out> — create a new test from files
+        * show - show testcase
         * edit | edit in | edit out — edit testcase files
         * delete — delete testcase
     * show <ex> — grade summary for exercise
