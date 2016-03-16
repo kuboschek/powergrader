@@ -68,7 +68,7 @@ def ingest(input, name, id):
 def grade(ex):
     """Run all processors on given exercises' results."""
     from processors.base import BaseProcessor
-
+    from processors.diff import DiffProcessor
 
     exdir = get_ex_dir(ex)
 
@@ -80,11 +80,20 @@ def grade(ex):
     users = listdir(result_dir)
 
     # TODO Parse manifest to obtain file list and test cases
-    b = BaseProcessor(ex, [], [])
+    with open(join(exdir, 'manifest.json')) as man_file:
+        manifest = json.load(man_file)
+
+    testcases = manifest['testcases']
+    filenames = manifest['files']
+
+
+    b = BaseProcessor(ex, filenames, testcases)
+    d = DiffProcessor(ex, filenames, testcases)
 
     # List of all processors, run in this order
     procs = [
-        b
+        b,
+        d
     ]
 
     click.secho("Grading %s (%s):" % (ex, exdir), bold=True)
