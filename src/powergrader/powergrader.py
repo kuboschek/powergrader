@@ -72,6 +72,7 @@ def grade(ex):
     from processors.diff import DiffProcessor
     from processors.compile import CompileProcessor
     from processors.formatting import FormattingProcessor
+    from processors.testcases import TestCaseProcessor
 
     exdir = get_ex_dir(ex)
 
@@ -91,6 +92,7 @@ def grade(ex):
         DiffProcessor,
         FormattingProcessor,
         CompileProcessor,
+        TestCaseProcessor,
     ]
 
     # Instantiate each processor
