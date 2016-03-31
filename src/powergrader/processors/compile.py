@@ -31,7 +31,7 @@ class CompileProcessor(BaseProcessor):
                 'comment': "Compile errors found: {0}".format(path),
                 'percentage': 0,
                 'suggestion': True,
-                'description': [line.rstrip for line in syntax_proc.stdout]
+                'description': [str(line.rstrip()) for line in syntax_proc.stdout]
             })
 
         return out

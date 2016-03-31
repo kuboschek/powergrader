@@ -90,6 +90,7 @@ def grade(ex):
         BaseProcessor,
         DiffProcessor,
         FormattingProcessor,
+        CompileProcessor,
     ]
 
     # Instantiate each processor
