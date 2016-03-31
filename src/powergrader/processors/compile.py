@@ -56,7 +56,10 @@ class CompileProcessor(BaseProcessor):
         compile_cmd = ["g++", "-Werror", "-Wall", "-Wpedantic", "-o", exec_path]
         compile_cmd.extend(src_files)
 
-        compile_proc = subprocess.Popen(compile_cmd)
+        compile_proc = subprocess.Popen(compile_cmd,
+                                        stdout=subprocess.DEVNULL,
+                                        stderr=subprocess.STDOUT)
+
         compile_proc.wait()
 
 
