@@ -17,7 +17,7 @@ class CompileProcessor(BaseProcessor):
         """Syntax check a single source file"""
         out = []
 
-        syntax_cmd = ["g++", "-fsyntax-only", "-Werror", "-Wall", "-Wpedantic"]
+        syntax_cmd = ["g++", "-fsyntax-only", "-Wall", "-Wpedantic"]
         syntax_cmd.append(path)
 
         syntax_proc = subprocess.Popen(syntax_cmd,
@@ -53,7 +53,7 @@ class CompileProcessor(BaseProcessor):
                 out.extend(syntax_err)
 
         # Compile files into executable
-        compile_cmd = ["g++", "-Werror", "-Wall", "-Wpedantic", "-o", exec_path]
+        compile_cmd = ["g++", "-Wall", "-Wpedantic", "-o", exec_path]
         compile_cmd.extend(src_files)
 
         compile_proc = subprocess.Popen(compile_cmd,
