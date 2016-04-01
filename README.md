@@ -60,15 +60,15 @@ ex := exid | exname
 * pg
     * import <file> <name> <id> — imports a new tarball from Grader
     * grade <ex> — run processors on given exercise
-    * test <testname>
+    * test <testname> *NYI*
         * link <ex> — mark given test as relevant for exercise
-        * create — create a new test interactively
-        * create <in> <out> — create a new test from files
-        * show - show testcase
-        * edit | edit in | edit out — edit testcase files
-        * delete — delete testcase
+        * create — create a new test interactively *NYI*
+        * create <in> <out> — create a new test from files *NYI*
+        * show - show testcase *NYI*
+        * edit | edit in | edit out — edit testcase files *NYI*
+        * delete — delete testcase *NYI*
     * show <ex> — grade summary for exercise
-    * show <ex> <username> — show deductions for given user
-    * review <ex> <username> — review grade suggestions for given solution
-    * open <ex> — open exercise folder
-    * open <ex> <username> — open user’s solution
+    * show <ex> <username> — show deductions for given user *NYI*
+    * review <ex> <username> — review grade suggestions for given solution *NYI*
+    * open <ex> — open exercise folder *NYI*
+    * open <ex> <username> — open user’s solution *NYI*

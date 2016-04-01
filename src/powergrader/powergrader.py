@@ -14,6 +14,7 @@ import click
 from helpers import builddirs, get_ex_dir, get_ex_results_dir, mangle_ex_name, get_test_dir
 
 MANIFEST_NAME = "manifest.json"
+RESULT_NAME = "result.json"
 
 @click.group()
 def cli():
@@ -122,10 +123,48 @@ def grade(ex):
             else:
                 click.secho("%s: OK" % user, fg='green')
 
-            with open(join(resdir, 'result.json'), 'w') as res_file:
+            with open(join(resdir, RESULT_NAME), 'w') as res_file:
                 json.dump(deductions, res_file, indent=4)
 
+@cli.command()
+@click.argument('ex')
+@click.argument('uname', required=False)
+def show(ex, uname):
+    result_dir = get_ex_results_dir(ex)
 
+    if not isdir(result_dir):
+        click.secho("Exercise {0} not found ({1})".format(ex, result_dir), fg='red')
+        return
+
+    if uname:
+        user_dir = join(result_dir, uname)
+        if not isdir(user_dir):
+            click.secho("User {0} not found ({1})".format(uname, user_dir), fg='red')
+            return
+        # TODO Show detailed grading for user
+    else:
+        # Print grade summary
+        for user in listdir(result_dir):
+            resdir = join(result_dir, user)
+
+            if isdir(resdir):
+                with open(join(resdir, RESULT_NAME)) as res_file:
+                    result = json.load(res_file)
+
+                percentage = 100
+                suggest = 100
+
+                for proc in result:
+                    if proc['deductions']:
+                        for d in proc['deductions']:
+                            suggest -= d['percentage']
+
+                            if not d['suggestion']:
+                                percentage -= d['percentage']
+
+                color = 'red' if percentage < 50 else 'yellow' if percentage < 100 else 'green'
+                suggest = "({0}%)".format(suggest) if suggest != percentage else ""
+                click.secho("{0}: {1}% {2}".format(user, percentage, suggest), fg=color)
 
 IN_FILE = 'in'
 OUT_FILE = 'out'
@@ -181,7 +220,6 @@ def link(ctx, ex):
         json.dump(manifest, man_f, indent=4)
 
     return
-
 
 if __name__ == '__main__':
     cli(obj={})
