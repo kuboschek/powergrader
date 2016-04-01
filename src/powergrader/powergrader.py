@@ -155,7 +155,33 @@ def show(ex, uname):
         if not isdir(user_dir):
             click.secho("User {0} not found ({1})".format(uname, user_dir), fg='red')
             return
-        # TODO Show detailed grading for user
+        with open(join(user_dir, RESULT_NAME)) as res_file:
+            result = json.load(res_file)
+
+        click.secho("Details for {0}/{1}".format(ex, uname), bold=True)
+        click.secho("")
+
+        percentage = 100
+        suggest = 100
+
+        for proc in result:
+            if proc['deductions']:
+                click.secho(proc['generated-by'], bold=True)
+                for d in proc['deductions']:
+                    suggest -= d['percentage']
+                    if not d['suggestion']:
+                        percentage -= d['percentage']
+
+                    fstr = "{0} ({1}%)" if d['suggestion'] else "{0}: {1}%"
+                    click.secho(fstr.format(d['comment'], d['percentage']))
+                    if 'description' in d:
+                        for line in d['description']:
+                            click.secho(line)
+            click.secho("")
+
+        click.secho("Total Grade: {0}% ".format(percentage), bold=True, nl=False)
+        click.secho("({0}%)".format(suggest))
+
     else:
         # Print grade summary
         for user in listdir(result_dir):
