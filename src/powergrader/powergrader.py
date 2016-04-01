@@ -3,8 +3,8 @@
 # Local helpers file
 # from helpers import *
 
-from os import mkdir, removedirs, listdir
-from os.path import join, isdir, isfile
+from os import mkdir, removedirs, listdir, rmdir, rename
+from os.path import join, isdir, isfile, normpath, basename, splitext
 
 import subprocess
 import json
@@ -23,11 +23,11 @@ def cli():
 
 @cli.command('import')
 @click.argument('file', type=click.Path(exists=True))
-@click.argument('name')
-@click.argument('exid', required=False)
-def ingest(file, name, exid):
+def ingest(file):
     """ Import a new file into powergrader """
-    exname = mangle_ex_name(name, exid)
+
+    # Generate exercise name from
+    exname = splitext(basename(normpath(file)))[0]
 
     # Ensure that all required folders exist
     builddirs()
@@ -48,14 +48,28 @@ def ingest(file, name, exid):
     # If tar fails, clean up again
     if untar.returncode != 0:
         removedirs(get_ex_dir(exname))
+        click.secho("Importing exercise {0} failed.".format(exname), fg='red')
+        return
+
+    # Get list of result directories
+    files_at = join(get_ex_results_dir(exname), exname)
+    result_dirs = filter(isdir,
+                 [join(files_at, path)
+                  for path in listdir(files_at)])
+
+    # Move all subfolders one level up
+    for r in result_dirs:
+        uname = basename(normpath(r))
+        rename(r, join(get_ex_results_dir(exname), uname))
+
+    # Delete original folder
+    rmdir(files_at)
 
     # Generate manifest into folder
-
     manifest = {}
 
     manifest["name"] = exname
-    manifest["exname"] = name
-    manifest["exid"] = exid
+    manifest["exname"] = exname
 
     manifest["testcases"] = []
 
