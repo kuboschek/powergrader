@@ -57,6 +57,6 @@ class FormattingProcessor(BaseProcessor):
             length_errors = self.line_length(fname)
 
             if length_errors:
-                out.append(length_errors)
+                out.extend(length_errors)
 
         return out

@@ -50,7 +50,7 @@ class CompileProcessor(BaseProcessor):
             syntax_err = self.syntax_check(fname)
 
             if syntax_err:
-                out.append(syntax_err)
+                out.extend(syntax_err)
 
         # Compile files into executable
         compile_cmd = ["g++", "-Werror", "-Wall", "-Wpedantic", "-o", exec_path]
