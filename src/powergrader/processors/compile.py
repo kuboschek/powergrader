@@ -17,7 +17,7 @@ class CompileProcessor(BaseProcessor):
         """Syntax check a single source file"""
         out = []
 
-        syntax_cmd = ["g++", "-fsyntax-only", "-Werror", "-Wall", "-Wpedantic"]
+        syntax_cmd = ["g++", "-fno-diagnostics-color", "-fsyntax-only", "-Werror", "-Wall", "-Wpedantic"]
         syntax_cmd.append(path)
 
         syntax_proc = subprocess.Popen(syntax_cmd,
@@ -25,13 +25,12 @@ class CompileProcessor(BaseProcessor):
                                        stderr=subprocess.STDOUT)
         syntax_proc.wait()
 
-
         if syntax_proc.returncode != 0:
             out.append({
                 'comment': "Compile errors found: {0}".format(path),
                 'percentage': 0,
                 'suggestion': True,
-                'description': [line.rstrip for line in syntax_proc.stdout]
+                'description': [str(line.rstrip(b"\n").decode('unicode_escape').encode('ascii','ignore')) for line in syntax_proc.stdout]
             })
 
         return out
@@ -50,13 +49,15 @@ class CompileProcessor(BaseProcessor):
             syntax_err = self.syntax_check(fname)
 
             if syntax_err:
-                out.append(syntax_err)
+                out.extend(syntax_err)
 
         # Compile files into executable
-        compile_cmd = ["g++", "-Werror", "-Wall", "-Wpedantic", "-o", exec_path]
+        compile_cmd = ["g++", "-fno-diagnostics-color", "-Werror", "-Wall", "-Wpedantic", "-o", exec_path]
         compile_cmd.extend(src_files)
 
-        compile_proc = subprocess.Popen(compile_cmd)
+        compile_proc = subprocess.Popen(compile_cmd,
+                                        stdout=subprocess.DEVNULL,
+                                        stderr=subprocess.STDOUT)
         compile_proc.wait()
 
 
