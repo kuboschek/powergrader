@@ -11,6 +11,9 @@ ALL_DIRS = [
     TEST_DIR
 ]
 
+IN_FILE = "in"
+OUT_FILE = "out"
+
 
 RESULTS_DIR = "results"
 
@@ -52,6 +55,15 @@ def get_ex_solution(exname, uname):
 def get_test_dir(testname, parent=getbasedir()):
     """Returns the testcases directory"""
     return join(parent, TEST_DIR, testname)
+
+def get_test_in_path(testname, parent=getbasedir()):
+    """Returns the path of the input of the testcase"""
+    return join(get_test_dir(testname, parent), IN_FILE)
+
+def get_test_out_path(testname, parent=getbasedir()):
+    """Returns the path of the output of the testcase"""
+    return join(get_test_dir(testname, parent), OUT_FILE)
+
 
 # Name mangling
 def mangle_ex_name(exname, exid):

@@ -3,8 +3,8 @@
 # Local helpers file
 # from helpers import *
 
-from os import mkdir, removedirs, listdir
-from os.path import join, isdir, isfile
+from os import mkdir, removedirs, listdir, rmdir, rename
+from os.path import join, isdir, isfile, normpath, basename, splitext
 
 import subprocess
 import json
@@ -14,6 +14,7 @@ import click
 from helpers import builddirs, get_ex_dir, get_ex_results_dir, mangle_ex_name, get_test_dir
 
 MANIFEST_NAME = "manifest.json"
+RESULT_NAME = "result.json"
 
 @click.group()
 def cli():
@@ -22,11 +23,11 @@ def cli():
 
 @cli.command('import')
 @click.argument('file', type=click.Path(exists=True))
-@click.argument('name')
-@click.argument('exid', required=False)
-def ingest(file, name, exid):
+def ingest(file):
     """ Import a new file into powergrader """
-    exname = mangle_ex_name(name, exid)
+
+    # Generate exercise name from
+    exname = splitext(basename(normpath(file)))[0]
 
     # Ensure that all required folders exist
     builddirs()
@@ -47,14 +48,28 @@ def ingest(file, name, exid):
     # If tar fails, clean up again
     if untar.returncode != 0:
         removedirs(get_ex_dir(exname))
+        click.secho("Importing exercise {0} failed.".format(exname), fg='red')
+        return
+
+    # Get list of result directories
+    files_at = join(get_ex_results_dir(exname), exname)
+    result_dirs = filter(isdir,
+                 [join(files_at, path)
+                  for path in listdir(files_at)])
+
+    # Move all subfolders one level up
+    for r in result_dirs:
+        uname = basename(normpath(r))
+        rename(r, join(get_ex_results_dir(exname), uname))
+
+    # Delete original folder
+    rmdir(files_at)
 
     # Generate manifest into folder
-
     manifest = {}
 
     manifest["name"] = exname
-    manifest["exname"] = name
-    manifest["exid"] = exid
+    manifest["exname"] = exname
 
     manifest["testcases"] = []
 
@@ -71,6 +86,8 @@ def grade(ex):
     from processors.base import BaseProcessor
     from processors.diff import DiffProcessor
     from processors.compile import CompileProcessor
+    from processors.formatting import FormattingProcessor
+    from processors.testcases import TestCaseProcessor
 
     exdir = get_ex_dir(ex)
 
@@ -88,7 +105,9 @@ def grade(ex):
     proc_classes = [
         BaseProcessor,
         DiffProcessor,
-        CompileProcessor
+        FormattingProcessor,
+        CompileProcessor,
+        TestCaseProcessor,
     ]
 
     # Instantiate each processor
@@ -118,10 +137,74 @@ def grade(ex):
             else:
                 click.secho("%s: OK" % user, fg='green')
 
-            with open(join(resdir, 'result.json'), 'w') as res_file:
+            with open(join(resdir, RESULT_NAME), 'w') as res_file:
                 json.dump(deductions, res_file, indent=4)
 
+@cli.command()
+@click.argument('ex')
+@click.argument('uname', required=False)
+def show(ex, uname):
+    result_dir = get_ex_results_dir(ex)
 
+    if not isdir(result_dir):
+        click.secho("Exercise {0} not found ({1})".format(ex, result_dir), fg='red')
+        return
+
+    if uname:
+        user_dir = join(result_dir, uname)
+        if not isdir(user_dir):
+            click.secho("User {0} not found ({1})".format(uname, user_dir), fg='red')
+            return
+        with open(join(user_dir, RESULT_NAME)) as res_file:
+            result = json.load(res_file)
+
+        click.secho("Details for {0}/{1}".format(ex, uname), bold=True)
+        click.secho("")
+
+        percentage = 100
+        suggest = 100
+
+        for proc in result:
+            if proc['deductions']:
+                click.secho(proc['generated-by'], bold=True)
+                for d in proc['deductions']:
+                    suggest -= d['percentage']
+                    if not d['suggestion']:
+                        percentage -= d['percentage']
+
+                    fstr = "{0} ({1}%)" if d['suggestion'] else "{0}: {1}%"
+                    click.secho(fstr.format(d['comment'], d['percentage']))
+                    if 'description' in d:
+                        for line in d['description']:
+                            click.secho(line)
+            click.secho("")
+
+        click.secho("Total Grade: {0}% ".format(percentage), bold=True, nl=False)
+        click.secho("({0}%)".format(suggest))
+
+    else:
+        # Print grade summary
+        for user in listdir(result_dir):
+            resdir = join(result_dir, user)
+
+            if isdir(resdir):
+                with open(join(resdir, RESULT_NAME)) as res_file:
+                    result = json.load(res_file)
+
+                percentage = 100
+                suggest = 100
+
+                for proc in result:
+                    if proc['deductions']:
+                        for d in proc['deductions']:
+                            suggest -= d['percentage']
+
+                            if not d['suggestion']:
+                                percentage -= d['percentage']
+
+                color = 'red' if percentage < 50 else 'yellow' if percentage < 100 else 'green'
+                suggest = "({0}%)".format(suggest) if suggest != percentage else ""
+                click.secho("{0}: {1}% {2}".format(user, percentage, suggest), fg=color)
 
 IN_FILE = 'in'
 OUT_FILE = 'out'
@@ -177,7 +260,6 @@ def link(ctx, ex):
         json.dump(manifest, man_f, indent=4)
 
     return
-
 
 if __name__ == '__main__':
     cli(obj={})

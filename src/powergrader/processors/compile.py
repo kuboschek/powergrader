@@ -58,6 +58,7 @@ class CompileProcessor(BaseProcessor):
         compile_proc = subprocess.Popen(compile_cmd,
                                         stdout=subprocess.DEVNULL,
                                         stderr=subprocess.STDOUT)
+
         compile_proc.wait()
 
 
