@@ -40,7 +40,7 @@ class TestCaseProcessor(BaseProcessor):
                             stdout=open(test_out, "w+"))
             try:
                 test_proc.wait(timeout=self.timeout)
-            except TimeoutExpired:
+            except:
                 out.append({
                     'comment': "Execution timed out after {0}s.".format(self.timeout),
                     'percentage': 0,
