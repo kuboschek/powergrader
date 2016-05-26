@@ -25,13 +25,12 @@ class CompileProcessor(BaseProcessor):
                                        stderr=subprocess.STDOUT)
         syntax_proc.wait()
 
-
         if syntax_proc.returncode != 0:
             out.append({
                 'comment': "Compile errors found: {0}".format(path),
                 'percentage': 0,
                 'suggestion': True,
-                'description': [str(line.rstrip()) for line in syntax_proc.stdout]
+                'description': [str(line.rstrip(b"\n").decode('unicode_escape').encode('ascii','ignore')) for line in syntax_proc.stdout]
             })
 
         return out

@@ -60,6 +60,7 @@ ex := exid | exname
 * pg
     * import <file> <name> <id> — imports a new tarball from Grader
     * grade <ex> — run processors on given exercise
+    * dump <ex> - dump grades to stdout in JSON
     * test <testname> *NYI*
         * link <ex> — mark given test as relevant for exercise
         * create — create a new test interactively *NYI*
